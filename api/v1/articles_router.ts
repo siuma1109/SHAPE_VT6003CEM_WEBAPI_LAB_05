@@ -6,20 +6,29 @@ const router = new Router({ prefix: '/api/v1/articles' });
 
 // Temporarily define some random articles in an array.
 // Later this will come from the DB.
-const articles = [
+interface Article {
+    id: number;
+    [key: string]: any;
+}
+
+const articles: Article[] = [
     {
+        id: 1,
         title: 'hello article',
         fullText: 'some text here to fill the body'
     },
     {
+        id: 2,
         title: 'another article',
         fullText: 'again here is some text here to fill'
     },
     {
+        id: 3,
         title: 'coventry university ',
         fullText: 'some news about coventry university'
     },
     {
+        id: 4,
         title: 'smart campus',
         fullText: 'smart campus is coming to IVE'
     }
@@ -48,7 +57,7 @@ const createArticle = async (ctx: RouterContext, next: any) => {
     // Use this to extract the title and fullText we were sent.
     let { title, fullText } = ctx.request.body as { title: string, fullText: string };
     // In turn, define a new article for addition to the array.
-    let newArticle = { title: title, fullText: fullText };
+    let newArticle = { id: articles.length + 1, title: title, fullText: fullText };
     articles.push(newArticle);
     // Finally send back appropriate JSON and status code.
     // Once we move to a DB store, the newArticle sent back will now have its ID.
@@ -58,6 +67,27 @@ const createArticle = async (ctx: RouterContext, next: any) => {
 }
 const updateArticle = async (ctx: RouterContext, next: any) => {
     //TODO: edit an article
+    // Get the ID from the route parameters.
+    let id = +ctx.params.id
+    let article = articles.find(x => x.id === id)
+    if (article) {
+        const onChange = (props: string, value: string, id: number) => {
+            const obj = articles.find(x => x.id === id);
+            if (obj) {
+                obj[props] = value;
+            }
+        }
+        let { title, fullText } = ctx.request.body as { title: string, fullText: string };
+        onChange("title", title, id);
+        onChange("fullText", fullText, id);
+
+        ctx.body = article;
+        ctx.status = 200;
+    } else {
+        ctx.status = 404;
+    }
+
+    await next();
 }
 const deleteArticle = async (ctx: RouterContext, next: any) => {
     //TODO: delete an article
@@ -69,7 +99,7 @@ const deleteArticle = async (ctx: RouterContext, next: any) => {
 router.get('/', getAll);
 router.post('/', bodyParser(), createArticle);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', updateArticle);
+router.put('/:id([0-9]{1,})', bodyParser(), updateArticle);
 router.del('/:id([0-9]{1,})', deleteArticle);
 // Finally, define the exported object when import from other scripts.
 export { router };
