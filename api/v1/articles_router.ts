@@ -11,7 +11,7 @@ interface Article {
     [key: string]: any;
 }
 
-const articles: Article[] = [
+let articles: Article[] = [
     {
         id: 1,
         title: 'hello article',
@@ -91,6 +91,20 @@ const updateArticle = async (ctx: RouterContext, next: any) => {
 }
 const deleteArticle = async (ctx: RouterContext, next: any) => {
     //TODO: delete an article
+    let id = +ctx.params.id
+    let article = articles.find(x => x.id === id)
+
+    if (article) {
+        articles = articles.filter(x => {
+            return x.id != id;
+        })
+        ctx.body = articles;
+        ctx.status = 200;
+    } else {
+        ctx.status = 404;
+    }
+
+    await next();
 }
 /* Routes are needed to connect path endpoints to handler functions.
  When an Article id needs to be matched we use a pattern to match
